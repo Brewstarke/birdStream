@@ -1,0 +1,88 @@
+---
+title: "eBirdFun"
+author: "BrewStarke"
+date: "March 17, 2016"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(shiny)
+library(htmltools)
+library(shinyapps)
+library(streamgraph)
+library(dplyr)
+library(tidyr)
+library(rebird)
+library(magrittr)
+```
+Stream Plots of bird occurence:
+
+# Uplands Farm Sanctuary
+
+
+```{r hotspotStream, echo=FALSE, out.width=1000}
+
+birdStreamPlothotspot <- function(hotspot){
+	data <- ebirdfreq('hotspots', hotspot)
+	data %<>% separate(monthQt, into = c("Month", "Week")) %>%
+		mutate(monthNum = as.numeric(match(.$Month, table = month.name))) %>%
+		mutate(weekNo = as.Date((monthNum - 1) * 4 + (as.numeric(Week)), format = '%U', origin = '1')) %>%
+		mutate(freqtrans = frequency^1)
+
+	data %>% streamgraph(comName, freqtrans, weekNo) %>%
+		sg_fill_brewer("Spectral") %>%
+		sg_axis_x(NULL) %>%
+		sg_legend(show=TRUE, label="Species: ")
+}
+
+birdStreamPlothotspot('L123000')
+
+
+```
+
+Uplands is doesn't have a robust dataset available on eBird- 98% of submitted observations are made by one D.Rogers. 
+Moving out in scale- the County data is a but more conducive to this sort of plot
+
+# Suffolk County- NY
+
+```{r countyStream, echo=FALSE, out.width=1000}
+
+birdStreamPlotCounty <- function(county, ...){
+	data <- ebirdfreq('counties', county)
+	data %<>% separate(monthQt, into = c("Month", "Week")) %>% 
+		mutate(monthNum = as.numeric(match(.$Month, table = month.name))) %>%
+		mutate(weekNo = as.Date((monthNum - 1) * 4 + (as.numeric(Week)), format = '%U', origin = '1')) %>% 
+		mutate(freqtrans = frequency^1)
+	
+	data %>% streamgraph(comName, freqtrans, weekNo) %>%
+		sg_fill_brewer("Spectral") %>%
+		sg_axis_x(NULL) %>% 
+		sg_legend(show=TRUE, label="Species: ")
+}
+
+birdStreamPlotCounty('US-NY-103')
+
+```
+
+### A few notes:
+- To allow for more definitive seperations and amplify the  between species the frequencies has been transposed (cubed). This DOES effectively eliminate the less often observed species (they are still accounted for in the plot, they are just very small)
+```{r slider, echo=FALSE}
+
+getlatlng() -> latlon
+lat <- latlon[1]
+lon <-  latlon[2]	
+
+nearBirds <- ebirdgeo(lat = lat, lng = lon, dist = 50)
+
+print(latlon)
+```
+
+
+- The x-axis is goofy- It seems the data are stretched appropriately across the X but the labelling is off. THe left-most should be Jan and the right-most December.
+- This is frequency data from eBird- I'm not 100% sure what that means exactly- I think it's % of observations that contain that species. Need to research that more. 
+
+
