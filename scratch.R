@@ -49,22 +49,37 @@ birdstream %>% streamgraph(comName, frequency, weekNo) %>%
 ###
 
 
-birdStreamPlot <- function(county){
+birdStreamPlotCounty <- function(county, ...){
 	data <- ebirdfreq('counties', county)
 	data %<>% separate(monthQt, into = c("Month", "Week")) %>% 
 		mutate(monthNum = as.numeric(match(.$Month, table = month.name))) %>%
 		mutate(weekNo = as.Date((monthNum - 1) * 4 + (as.numeric(Week)), format = '%U', origin = '1')) %>% 
 		mutate(freqtrans = frequency^3)
 	
-	data %>% streamgraph(comName, freqtrans, weekNo, offset = 'zero') %>%
+	data %>% streamgraph(comName, freqtrans, weekNo) %>%
 		sg_fill_brewer("Spectral") %>%
 		sg_axis_x(1, "week", "%U") %>% 
 		sg_legend(show=TRUE, label="Species: ")
 }
 
-birdStreamPlot('US-NY-103')
+birdStreamPlotCounty('US-NY-103')
 
 
+
+birdStreamPlothotspot <- function(hotspot){
+	data <- ebirdfreq('hotspots', hotspot)
+	data %<>% separate(monthQt, into = c("Month", "Week")) %>% 
+		mutate(monthNum = as.numeric(match(.$Month, table = month.name))) %>%
+		mutate(weekNo = as.Date((monthNum - 1) * 4 + (as.numeric(Week)), format = '%U', origin = '1')) %>% 
+		mutate(freqtrans = frequency^3)
+	
+	data %>% streamgraph(comName, freqtrans, weekNo) %>%
+		sg_fill_brewer("Spectral") %>%
+		sg_axis_x(1, "week", "%U") %>% 
+		sg_legend(show=TRUE, label="Species: ")
+}
+
+birdStreamPlothotspot('L123000')
 
 
 
